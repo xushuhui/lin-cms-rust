@@ -1,12 +1,16 @@
-use warp::Filter;
+
+
+use poem::{get, handler, listener::TcpListener, web::Path, Route, Server};
+
+#[handler]
+fn hello(Path(name): Path<String>) -> String {
+    format!("hello: {}", name)
+}
 
 #[tokio::main]
-async fn main() {
-    // GET /hello/warp => 200 OK with body "Hello, warp!"
-    let hello = warp::path!("hello" / String)
-        .map(|name| format!("Hello, {}!", name));
-
-    warp::serve(hello)
-        .run(([127, 0, 0, 1], 3030))
-        .await;
+async fn main() -> Result<(), std::io::Error> {
+    let app = Route::new().at("/hello/:name", get(hello));
+    Server::new(TcpListener::bind("127.0.0.1:3000"))
+      .run(app)
+      .await
 }
